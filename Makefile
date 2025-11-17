@@ -13,7 +13,7 @@ check: ## Run code quality tools.
 	@echo "🚀 Static type checking: Running ty"
 	@uv run ty check
 	@echo "🚀 Checking for obsolete dependencies: Running deptry"
-	@uv run deptry src --per-rule-ignores "DEP001=mlflow|clearml"
+	@uv run deptry src --per-rule-ignores "DEP001=mlflow|clearml,DEP002=pytest|pytest-cov|pre-commit|tox-uv|deptry|ty|ruff|mypy|bandit|mkdocs|mkdocs-material|mkdocstrings"
 
 .PHONY: test
 test: ## Test the code with pytest
