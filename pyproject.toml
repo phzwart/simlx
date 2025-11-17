@@ -1,6 +1,6 @@
 [project]
 name = "simlx"
-version = "0.0.1"
+version = "0.1.0"
 description = "self supervised representation learning"
 authors = [{ name = "Petrus Zwart", email = "phzwart@lbl.gov" }]
 readme = "README.md"
