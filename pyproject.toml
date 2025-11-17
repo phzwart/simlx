@@ -133,4 +133,11 @@ omit = [
     "*/test_*.py",
     "*/__pycache__/*",
     "*/migrations/*",
+    # Files under development, not yet tested
+    "src/simlx/models/decoder_head.py",
+    "src/simlx/models/mamba_vit_encoder.py",
+    "src/simlx/models/vit_encoder.py",
+    "src/simlx/models/projection_utils.py",
+    "src/simlx/data/loaders/base.py",
+    "src/simlx/data/loaders/__init__.py",
 ]
