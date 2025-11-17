@@ -83,7 +83,7 @@ class DecoderHead(nn.Module):
         else:
             raise ValueError(f"Unsupported mode: {mode}. Must be 'mlp' or 'transformer'.")
 
-    def forward(
+    def forward(  # noqa: C901
         self,
         visible_tokens: torch.Tensor,
         num_total_tokens: int | None = None,

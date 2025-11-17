@@ -244,7 +244,8 @@ class QuantileNorm2d(nn.Module):
         """
         _B, C, _H, _W = x.shape
 
-        assert self.num_features == C, f"Expected {self.num_features} channels, got {C}"
+        if self.num_features != C:
+            raise ValueError(f"Expected {self.num_features} channels, got {C}")
 
         # Update running statistics in training mode
         if self.training:

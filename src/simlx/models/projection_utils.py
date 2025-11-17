@@ -25,8 +25,6 @@ def compute_svd_projections(
     device: torch.device | None = None,
     max_batches: int | None = None,
 ) -> dict[str, torch.Tensor]:
-    if device is None:
-        device = torch.device("cpu")
     """Compute SVD-based projection matrices for random projection heads.
 
     Args:
@@ -39,6 +37,8 @@ def compute_svd_projections(
         Mapping from scale name to projection matrix shaped
         ``[out_features, in_features]``.
     """
+    if device is None:
+        device = torch.device("cpu")
 
     feature_sets = _collect_head_inputs(model, dataloader, device, max_batches)
     projections: dict[str, torch.Tensor] = {}
@@ -87,8 +87,6 @@ def analyze_projection_quality(
     dataloader: DataLoader,
     device: torch.device | None = None,
 ) -> dict[str, dict[str, float]]:
-    if device is None:
-        device = torch.device("cpu")
     """Analyze projection quality metrics for each random projection head.
 
     Args:
@@ -100,6 +98,8 @@ def analyze_projection_quality(
         Nested mapping ``scale -> metric -> value`` including variance explained,
         reconstruction error, and effective rank.
     """
+    if device is None:
+        device = torch.device("cpu")
 
     feature_sets = _collect_head_inputs(model, dataloader, device, None)
     metrics: dict[str, dict[str, float]] = {}
