@@ -15,7 +15,16 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: ["src/simlx"]
+          paths: ["src"]
+          options:
+            show_source: false
+            show_root_heading: true
+            show_root_toc_entry: true
+            filters: ["!^_"]
+            members_order: alphabetical
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
 theme:
   name: material
   feature:

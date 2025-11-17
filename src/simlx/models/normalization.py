@@ -6,6 +6,8 @@ normalization layer designed to work alongside BatchNorm for distribution refine
 
 from __future__ import annotations
 
+from typing import Any
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -297,7 +299,7 @@ def CascadedNorm2d(
     bn_momentum: float = 0.1,
     bn_affine: bool = True,
     bn_track_running_stats: bool = True,
-    **kwargs,
+    **kwargs: Any,
 ) -> nn.Sequential:
     """BatchNorm → QuantileNorm cascade (recommended usage).
 
