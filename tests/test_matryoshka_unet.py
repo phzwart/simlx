@@ -500,7 +500,7 @@ def test_projection_head_factory_type_error() -> None:
         feature_sizes=(16, 32),
         bottleneck_features=64,
         scale_channels={"bottleneck": 8, "up0": 12, "up1": 16},
-        projection_head_factory=invalid_factory,
+        projection_head_factory=invalid_factory,  # type: ignore[arg-type]
     )
     with pytest.raises(TypeError, match=r"projection_head_factory must return nn\.Module"):
         MatryoshkaUNet(config)

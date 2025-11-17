@@ -53,6 +53,19 @@ packages = ["src/simlx"]
 python = "./.venv"
 python-version = "3.9"
 
+[tool.ty.rules]
+# Ignore rules that have false positives with PyTorch
+# PyTorch's nn.Module uses custom __setattr__ which causes false positives
+unresolved-attribute = "ignore"  # PyTorch modules assign attributes dynamically
+call-non-callable = "ignore"  # Registered buffers are typed as Tensor | Module
+non-subscriptable = "ignore"  # Same issue with registered buffers
+no-matching-overload = "ignore"  # PyTorch tensor methods have complex overloads
+unsupported-operator = "ignore"  # Tensor operations are dynamically typed
+possibly-missing-implicit-call = "ignore"  # PyTorch's dynamic nature
+unresolved-import = "ignore"  # Optional dependencies (clearml, mlflow)
+possibly-missing-attribute = "ignore"  # Optional dependencies may be None
+invalid-argument-type = "warn"  # Downgrade to warning for test file
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
