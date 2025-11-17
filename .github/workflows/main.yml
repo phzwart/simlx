@@ -43,12 +43,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Run tests
-        run: uv run python -m pytest tests --cov --cov-config=pyproject.toml --cov-report=xml
+      - name: Run tests with coverage
+        run: uv run python -m pytest tests --cov=src/simlx --cov-report=term-missing --cov-report=xml --cov-fail-under=80 -v
 
       - name: Check typing
         run: uv run ty check
-
 
       - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
         uses: codecov/codecov-action@v4
