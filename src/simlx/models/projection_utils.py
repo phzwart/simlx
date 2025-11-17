@@ -4,9 +4,9 @@ Example:
     >>> projections = compute_svd_projections(model, train_loader, torch.device("cuda"))
     >>> replace_random_projections(model, projections)
     >>> metrics = analyze_projection_quality(model, val_loader)
-    >>> # Access variance_explained metric from the results
-    >>> variance = metrics["bottleneck"]["variance_explained"]
-    >>> print(variance)
+    >>> # Access metrics from the results dictionary
+    >>> bottleneck_metrics = metrics["bottleneck"]
+    >>> print(bottleneck_metrics["variance_explained"])
 """
 
 from __future__ import annotations
