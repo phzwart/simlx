@@ -303,7 +303,7 @@ class MatryoshkaUNetConfig:
         if self.conv_mode != "standard":
             raise ValueError("Only conv_mode='standard' supported in Stage 1")
 
-    def _validate_scale_normalization(self) -> None:  # noqa: C901
+    def _validate_scale_normalization(self) -> None:
         allowed = {None, "batchnorm", "quantile"}
         if self.scale_normalization not in allowed:
             raise ValueError(f"Unsupported scale_normalization: {self.scale_normalization}")
@@ -312,10 +312,7 @@ class MatryoshkaUNetConfig:
         if self.scale_normalization == "quantile":
             if self.quantile_num_quantiles < 2:
                 raise ValueError("quantile_num_quantiles must be at least 2")
-            if (
-                self.quantile_percentiles is not None
-                and len(self.quantile_percentiles) != self.quantile_num_quantiles
-            ):
+            if self.quantile_percentiles is not None and len(self.quantile_percentiles) != self.quantile_num_quantiles:
                 raise ValueError(
                     f"quantile_percentiles length ({len(self.quantile_percentiles)}) "
                     f"must match quantile_num_quantiles ({self.quantile_num_quantiles})"

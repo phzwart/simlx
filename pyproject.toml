@@ -134,4 +134,3 @@ omit = [
     "*/__pycache__/*",
     "*/migrations/*",
 ]
-

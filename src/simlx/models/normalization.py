@@ -75,9 +75,7 @@ class QuantileNorm2d(nn.Module):
                 percentiles = list(torch.linspace(2, 98, num_quantiles).tolist())
 
         if len(percentiles) != num_quantiles:
-            raise ValueError(
-                f"Number of percentiles ({len(percentiles)}) must match num_quantiles ({num_quantiles})"
-            )
+            raise ValueError(f"Number of percentiles ({len(percentiles)}) must match num_quantiles ({num_quantiles})")
 
         self.register_buffer("percentiles", torch.tensor(percentiles, dtype=torch.float32))
 
