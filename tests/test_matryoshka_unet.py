@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional, Tuple  # noqa: UP035  # Python 3.9 compatibility
+
 import pytest
 import torch
 
@@ -225,7 +229,7 @@ def test_invalid_activation() -> None:
 
 # Normalization tests
 @pytest.mark.parametrize("normalization", [None, "identity", "batch", "group", "layer"])
-def test_different_normalizations(normalization: str | None) -> None:
+def test_different_normalizations(normalization: Optional[str]) -> None:  # noqa: UP045  # Python 3.9 compatibility
     config = MatryoshkaUNetConfig(
         in_channels=1,
         feature_sizes=(16, 32),
@@ -258,7 +262,7 @@ def test_different_upsample_modes(upsample_mode: str) -> None:
 
 # Scale normalization tests
 @pytest.mark.parametrize("scale_normalization", [None, "batchnorm", "quantile"])
-def test_different_scale_normalizations(scale_normalization: str | None) -> None:
+def test_different_scale_normalizations(scale_normalization: Optional[str]) -> None:  # noqa: UP045  # Python 3.9 compatibility
     config = MatryoshkaUNetConfig(
         in_channels=1,
         feature_sizes=(16, 32),
@@ -376,7 +380,7 @@ def test_default_scale_channels_too_small() -> None:
 
 # Different input sizes
 @pytest.mark.parametrize("input_size", [(32, 32), (64, 64), (128, 128), (16, 32), (32, 16)])
-def test_different_input_sizes(input_size: tuple[int, int]) -> None:
+def test_different_input_sizes(input_size: Tuple[int, int]) -> None:  # noqa: UP006  # Python 3.9 compatibility
     config = _build_config()
     model = MatryoshkaUNet(config)
     x = torch.randn(2, 3, *input_size)
@@ -437,7 +441,7 @@ def test_different_kernel_sizes(kernel_size: int, padding: int) -> None:
 
 # Align corners tests
 @pytest.mark.parametrize("align_corners", [True, False, None])
-def test_align_corners(align_corners: bool | None) -> None:
+def test_align_corners(align_corners: Optional[bool]) -> None:  # noqa: UP045  # Python 3.9 compatibility
     config = MatryoshkaUNetConfig(
         in_channels=1,
         feature_sizes=(16, 32),
