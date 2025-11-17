@@ -64,7 +64,7 @@ class CoordinatePositionalEmbedding(nn.Module):
         dim_t = self.temperature ** (2 * (dim_t // 2) / (embed_dim // 2))
 
         # Cache for coordinate ranges
-        self.register_buffer("dim_t", dim_t)
+        self.register_buffer("dim_t", dim_t)  # type: ignore[arg-type]
 
     def _compute_relative_coords(self, coords: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute relative coordinates from absolute coordinates.

@@ -268,7 +268,7 @@ class QuantileNorm2d(nn.Module):
             x_c_norm = self._quantile_transform(
                 x_c,
                 source_quantiles=quantiles[c],
-                target_quantiles=self.target_quantiles,
+                target_quantiles=self.target_quantiles,  # type: ignore[arg-type]
                 variance=variances[c].item(),
             )
 
