@@ -74,6 +74,7 @@ def test_norm_preservation() -> None:
         loss = (y**2).sum()
         loss.backward()
 
+        assert x.grad is not None
         grad_norm = x.grad.norm().item()
         input_norm = x.norm().item()
         grad_ratios.append(grad_norm / input_norm)

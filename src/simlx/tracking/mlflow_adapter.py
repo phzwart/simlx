@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    import mlflow
+    import mlflow  # type: ignore[import-untyped]
 
     MLFLOW_AVAILABLE = True
 except ImportError:  # pragma: no cover - optional dependency
@@ -60,15 +60,15 @@ class MLflowAdapter(ExperimentTracker):
         mlflow.log_figure(figure, f"{name}.png")
 
     def set_tag(self, key: str, value: str) -> None:
-        mlflow.set_tag(key, value)
+        mlflow.set_tag(key, value)  # type: ignore[union-attr]
 
     def start_run(self, run_name: str | None = None, **kwargs: Any) -> None:
-        self._active_run = mlflow.start_run(run_name=run_name, run_id=self._run_id, **kwargs)
+        self._active_run = mlflow.start_run(run_name=run_name, run_id=self._run_id, **kwargs)  # type: ignore[union-attr]
         if self._active_run:
             self._run_id = self._active_run.info.run_id
 
     def end_run(self) -> None:
-        mlflow.end_run()
+        mlflow.end_run()  # type: ignore[union-attr]
         self._active_run = None
 
     @property

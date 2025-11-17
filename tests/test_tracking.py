@@ -1,4 +1,4 @@
-import importlib
+import importlib.util
 
 import pytest
 
@@ -19,13 +19,13 @@ def test_tracker_factory_noop() -> None:
     tracker.end_run()
 
 
-@pytest.mark.skipif(importlib.util.find_spec("mlflow") is None, reason="MLflow not installed")
+@pytest.mark.skipif(importlib.util.find_spec("mlflow") is None, reason="MLflow not installed")  # type: ignore[attr-defined]
 def test_tracker_factory_mlflow() -> None:
     tracker = create_tracker("mlflow")
     assert isinstance(tracker, MLflowAdapter)
 
 
-@pytest.mark.skipif(importlib.util.find_spec("clearml") is None, reason="ClearML not installed")
+@pytest.mark.skipif(importlib.util.find_spec("clearml") is None, reason="ClearML not installed")  # type: ignore[attr-defined]
 def test_tracker_factory_clearml() -> None:
     tracker = create_tracker("clearml")
     assert isinstance(tracker, ClearMLAdapter)

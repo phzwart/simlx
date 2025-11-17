@@ -53,6 +53,13 @@ packages = ["src/simlx"]
 python = "./.venv"
 python-version = "3.9"
 
+[tool.ty]
+ignore = [
+    "unresolved-import",  # Optional dependencies like mlflow
+    "unresolved-attribute",  # False positives with nn.Module attributes
+    "possibly-missing-attribute",  # Optional dependencies and dynamic attributes
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

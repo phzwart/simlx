@@ -62,8 +62,8 @@ class DecoderHead(nn.Module):
         dropout: float = 0.0,
     ) -> None:
         super().__init__()
-        self.embed_dim = embed_dim
-        self.token_dim = token_dim  # Original token dimension from qlty (C*patch_size*patch_size)
+        self.embed_dim = embed_dim  # type: ignore[assignment]
+        self.token_dim = token_dim  # type: ignore[assignment]  # Original token dimension from qlty (C*patch_size*patch_size)
         self.mode = mode.lower()
 
         if self.mode == "mlp":

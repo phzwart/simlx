@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 try:
-    import mlflow
+    import mlflow  # type: ignore[import-untyped]
 except ImportError:  # pragma: no cover - optional dependency
     mlflow = None  # type: ignore[assignment]
 
