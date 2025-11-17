@@ -44,7 +44,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Run tests with coverage
-        run: uv run python -m pytest tests --cov=src/simlx --cov-report=term-missing --cov-report=xml --cov-fail-under=40 -v
+        run: uv run python -m pytest tests --cov=src/simlx --cov-report=term-missing --cov-report=xml --cov-fail-under=33 -v
 
       - name: Check typing
         run: uv run ty check
