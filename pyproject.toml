@@ -26,12 +26,14 @@ Documentation = "https://phzwart.github.io/simlx/"
 [dependency-groups]
 dev = [
     "pytest>=7.2.0",
+    "pytest-cov>=4.0.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
     "deptry>=0.23.0",
     "ty>=0.0.1a16",
-    "pytest-cov>=4.0.0",
     "ruff>=0.11.5",
+    "mypy>=1.11.0",
+    "bandit>=1.7.9",
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
     "mkdocstrings[python]>=0.26.1",
@@ -107,8 +109,26 @@ preview = true
 
 [tool.coverage.report]
 skip_empty = true
+fail_under = 80
+precision = 2
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
 
 [tool.coverage.run]
 branch = true
 source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/migrations/*",
+]
 
