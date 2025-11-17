@@ -7,7 +7,7 @@ Example:
     >>> module.set_projection(torch.randn(64, 512) / math.sqrt(64))
     >>> module.eval()
     >>> y = module(torch.randn(2, 512, 16, 16))
-    
+
     >>> # Fixed deterministic Gaussian projection
     >>> fixed_module = FixedGaussianProjection(in_features=512, out_features=64, seed=42)
     >>> y = fixed_module(torch.randn(2, 512, 16, 16))  # Same projection every time
@@ -16,6 +16,7 @@ Example:
 from __future__ import annotations
 
 import math
+
 import torch  # type: ignore[import]
 import torch.nn as nn  # type: ignore[import]
 
@@ -36,9 +37,7 @@ class RandomGaussianProjection(nn.Module):
 
     def _sample_projection(self, device: torch.device, dtype: torch.dtype) -> torch.Tensor:
         scale = 1.0 / math.sqrt(self.out_features)
-        projection = torch.randn(
-            (self.out_features, self.in_features), device=device, dtype=dtype
-        )
+        projection = torch.randn((self.out_features, self.in_features), device=device, dtype=dtype)
         projection.mul_(scale)
         return projection
 
@@ -46,9 +45,7 @@ class RandomGaussianProjection(nn.Module):
         if x.dim() < 2:
             raise ValueError("Input tensor must have at least 2 dimensions (B, C, ...).")
         if x.shape[1] != self.in_features:
-            raise ValueError(
-                f"Expected input with {self.in_features} channels, got {x.shape[1]}."
-            )
+            raise ValueError(f"Expected input with {self.in_features} channels, got {x.shape[1]}.")
 
         if self.training:
             weight = self._sample_projection(x.device, x.dtype)
@@ -72,9 +69,7 @@ class RandomGaussianProjection(nn.Module):
     def set_projection(self, weight: torch.Tensor) -> None:
         if weight.shape != (self.out_features, self.in_features):
             raise ValueError(
-                "weight must have shape "
-                f"({self.out_features}, {self.in_features}), "
-                f"got {tuple(weight.shape)}."
+                f"weight must have shape ({self.out_features}, {self.in_features}), got {tuple(weight.shape)}."
             )
         if not weight.is_floating_point():
             raise TypeError("weight must be a floating point tensor.")
@@ -84,27 +79,23 @@ class RandomGaussianProjection(nn.Module):
 
     def extra_repr(self) -> str:
         projection_type = "fixed" if self._is_fixed and self.weight is not None else "random"
-        return (
-            f"in_features={self.in_features}, "
-            f"out_features={self.out_features}, "
-            f"projection={projection_type}"
-        )
+        return f"in_features={self.in_features}, out_features={self.out_features}, projection={projection_type}"
 
 
 class FixedGaussianProjection(nn.Module):
     """Fixed deterministic Gaussian projection matrix with no gradients.
-    
+
     Generates a Gaussian projection matrix using a fixed seed, ensuring the same
     projection is used across all networks. The projection matrix is registered
     as a buffer (not a parameter) and requires_grad=False, so it does not receive
     gradients during training.
-    
+
     Args:
         in_features: Number of input features
         out_features: Number of output features
         seed: Random seed for generating the projection matrix (default: 42)
         scale: Scaling factor for the projection (default: 1/sqrt(out_features))
-    
+
     Example:
         >>> module = FixedGaussianProjection(in_features=512, out_features=64, seed=42)
         >>> x = torch.randn(2, 512, 16, 16)
@@ -124,14 +115,14 @@ class FixedGaussianProjection(nn.Module):
         self.in_features = int(in_features)
         self.out_features = int(out_features)
         self.seed = seed
-        
+
         if scale is None:
             scale = 1.0 / math.sqrt(self.out_features)
         self.scale = scale
-        
+
         # Generate fixed projection matrix
         projection = self._generate_projection()
-        
+
         # Register as buffer (not parameter) with requires_grad=False
         self.register_buffer("weight", projection, persistent=True)
 
@@ -139,7 +130,7 @@ class FixedGaussianProjection(nn.Module):
         """Generate deterministic Gaussian projection matrix."""
         # Save current RNG state
         rng_state = torch.get_rng_state()
-        
+
         try:
             # Set fixed seed for deterministic generation
             torch.manual_seed(self.seed)
@@ -151,24 +142,22 @@ class FixedGaussianProjection(nn.Module):
         finally:
             # Restore RNG state
             torch.set_rng_state(rng_state)
-        
+
         return projection
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass with fixed projection matrix.
-        
+
         Args:
             x: Input tensor of shape (B, in_features, H, W) or (B, in_features, ...)
-            
+
         Returns:
             Projected tensor of shape (B, out_features, H, W) or (B, out_features, ...)
         """
         if x.dim() < 2:
             raise ValueError("Input tensor must have at least 2 dimensions (B, C, ...).")
         if x.shape[1] != self.in_features:
-            raise ValueError(
-                f"Expected input with {self.in_features} channels, got {x.shape[1]}."
-            )
+            raise ValueError(f"Expected input with {self.in_features} channels, got {x.shape[1]}.")
 
         batch_size = x.shape[0]
         spatial_shape = x.shape[2:]
@@ -184,5 +173,3 @@ class FixedGaussianProjection(nn.Module):
             f"seed={self.seed}, "
             f"scale={self.scale:.6f}"
         )
-
-

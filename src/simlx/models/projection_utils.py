@@ -9,7 +9,7 @@ Example:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import torch
 from torch.utils.data import DataLoader
@@ -22,9 +22,11 @@ from simlx.models.random_projection import RandomGaussianProjection
 def compute_svd_projections(
     model: MatryoshkaUNet,
     dataloader: DataLoader,
-    device: torch.device = torch.device("cpu"),
-    max_batches: Optional[int] = None,
-) -> Dict[str, torch.Tensor]:
+    device: torch.device | None = None,
+    max_batches: int | None = None,
+) -> dict[str, torch.Tensor]:
+    if device is None:
+        device = torch.device("cpu")
     """Compute SVD-based projection matrices for random projection heads.
 
     Args:
@@ -39,7 +41,7 @@ def compute_svd_projections(
     """
 
     feature_sets = _collect_head_inputs(model, dataloader, device, max_batches)
-    projections: Dict[str, torch.Tensor] = {}
+    projections: dict[str, torch.Tensor] = {}
 
     for scale_name, features in feature_sets.items():
         module = model.scale_heads[scale_name].head
@@ -61,7 +63,7 @@ def compute_svd_projections(
 
 def replace_random_projections(
     model: MatryoshkaUNet,
-    projections: Dict[str, torch.Tensor],
+    projections: dict[str, torch.Tensor],
 ) -> None:
     """Replace random projection heads with fixed projection matrices.
 
@@ -83,8 +85,10 @@ def replace_random_projections(
 def analyze_projection_quality(
     model: MatryoshkaUNet,
     dataloader: DataLoader,
-    device: torch.device = torch.device("cpu"),
-) -> Dict[str, Dict[str, float]]:
+    device: torch.device | None = None,
+) -> dict[str, dict[str, float]]:
+    if device is None:
+        device = torch.device("cpu")
     """Analyze projection quality metrics for each random projection head.
 
     Args:
@@ -98,7 +102,7 @@ def analyze_projection_quality(
     """
 
     feature_sets = _collect_head_inputs(model, dataloader, device, None)
-    metrics: Dict[str, Dict[str, float]] = {}
+    metrics: dict[str, dict[str, float]] = {}
 
     for scale_name, features in feature_sets.items():
         module = model.scale_heads[scale_name].head
@@ -118,10 +122,7 @@ def analyze_projection_quality(
         residual = centered - reconstructed
         residual_norm = torch.sum(residual**2).item()
 
-        if total_variance > 0:
-            variance_explained = 1.0 - residual_norm / total_variance
-        else:
-            variance_explained = 0.0
+        variance_explained = 1.0 - residual_norm / total_variance if total_variance > 0 else 0.0
 
         reconstruction_error = residual_norm / centered.shape[0] if centered.shape[0] > 0 else 0.0
 
@@ -167,13 +168,13 @@ def _extract_batch_input(batch: Any) -> torch.Tensor:
     )
 
 
-def _collect_head_inputs(
+def _collect_head_inputs(  # noqa: C901
     model: MatryoshkaUNet,
     dataloader: DataLoader,
     device: torch.device,
-    max_batches: Optional[int],
-) -> Dict[str, torch.Tensor]:
-    random_heads: Dict[str, RandomGaussianProjection] = {
+    max_batches: int | None,
+) -> dict[str, torch.Tensor]:
+    random_heads: dict[str, RandomGaussianProjection] = {
         scale_name: head.head
         for scale_name, head in model.scale_heads.items()
         if isinstance(head.head, RandomGaussianProjection)
@@ -181,9 +182,9 @@ def _collect_head_inputs(
     if not random_heads:
         raise RuntimeError("Model does not contain any RandomGaussianProjection heads.")
 
-    features: Dict[str, List[torch.Tensor]] = {name: [] for name in random_heads}
-    hooks: List[RemovableHandle] = []
-    random_states: List[tuple[RandomGaussianProjection, bool]] = []
+    features: dict[str, list[torch.Tensor]] = {name: [] for name in random_heads}
+    hooks: list[RemovableHandle] = []
+    random_states: list[tuple[RandomGaussianProjection, bool]] = []
     was_training = model.training
     original_device = _get_model_device(model)
 
@@ -227,7 +228,7 @@ def _collect_head_inputs(
         if original_device is not None and original_device != device:
             model.to(original_device)
 
-    aggregated: Dict[str, torch.Tensor] = {}
+    aggregated: dict[str, torch.Tensor] = {}
     for scale_name, tensors in features.items():
         if not tensors:
             raise RuntimeError(f"No features collected for scale '{scale_name}'.")
@@ -235,10 +236,9 @@ def _collect_head_inputs(
     return aggregated
 
 
-def _get_model_device(model: torch.nn.Module) -> Optional[torch.device]:
+def _get_model_device(model: torch.nn.Module) -> torch.device | None:
     for parameter in model.parameters():
         return parameter.device
     for buffer in model.buffers():
         return buffer.device
     return None
-

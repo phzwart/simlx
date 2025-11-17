@@ -38,7 +38,7 @@ repos:
     rev: "1.7.9"
     hooks:
       - id: bandit
-        args: ["-r", "src/", "-f", "json", "-o", "bandit-report.json"]
+        args: ["-r", "src/simlx", "-f", "json", "-o", "bandit-report.json"]
         exclude: ^tests/
 
   - repo: local

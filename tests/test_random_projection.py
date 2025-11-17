@@ -91,4 +91,3 @@ def test_3d_input() -> None:
 
     y = proj(x)
     assert y.shape == (2, 32, 16, 16, 16)
-

@@ -24,9 +24,9 @@ def create_tracker(backend: str, **kwargs: object) -> ExperimentTracker:
     backend_lower = backend.lower()
 
     if backend_lower == "mlflow":
-        return MLflowAdapter(**kwargs)
+        return MLflowAdapter(**kwargs)  # type: ignore[arg-type]
     if backend_lower == "clearml":
-        return ClearMLAdapter(**kwargs)
+        return ClearMLAdapter(**kwargs)  # type: ignore[arg-type]
     if backend_lower == "none":
         return NoOpTracker()
     raise ValueError(f"Unknown tracking backend: {backend}")

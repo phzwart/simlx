@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import torch  # type: ignore[import]
 import torch.nn as nn  # type: ignore[import]
-import torch.nn.functional as F  # type: ignore[import]
 
 
 class DecoderHead(nn.Module):
@@ -22,7 +21,7 @@ class DecoderHead(nn.Module):
     Example:
         >>> from qlty.patchops import tokenize_patch, build_sequence_pair
         >>> from simlx.models.vit_encoder import ViTEncoder
-        >>> 
+        >>>
         >>> # MLP mode
         >>> encoder = ViTEncoder(token_dim=768, embed_dim=768)
         >>> decoder = DecoderHead(
@@ -76,12 +75,9 @@ class DecoderHead(nn.Module):
             )
         elif self.mode == "transformer":
             self.mask_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-            self.decoder_blocks = nn.ModuleList(
-                [
-                    TransformerDecoderBlock(embed_dim, num_heads, mlp_ratio, dropout)
-                    for _ in range(decoder_depth)
-                ]
-            )
+            self.decoder_blocks = nn.ModuleList([
+                TransformerDecoderBlock(embed_dim, num_heads, mlp_ratio, dropout) for _ in range(decoder_depth)
+            ])
             self.decoder_norm = nn.LayerNorm(embed_dim)
             self.decoder = nn.Linear(embed_dim, token_dim)
         else:
@@ -206,4 +202,3 @@ class TransformerDecoderBlock(nn.Module):
         # Pre-norm MLP
         x = x + self.mlp(self.norm2(x))
         return x
-

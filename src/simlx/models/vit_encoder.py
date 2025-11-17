@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import math
-
 import torch  # type: ignore[import]
 import torch.nn as nn  # type: ignore[import]
-import torch.nn.functional as F  # type: ignore[import]
 
 
 class TokenEmbedding(nn.Module):
@@ -69,9 +66,7 @@ class CoordinatePositionalEmbedding(nn.Module):
         # Cache for coordinate ranges
         self.register_buffer("dim_t", dim_t)
 
-    def _compute_relative_coords(
-        self, coords: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    def _compute_relative_coords(self, coords: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute relative coordinates from absolute coordinates.
 
         Args:
@@ -80,7 +75,7 @@ class CoordinatePositionalEmbedding(nn.Module):
         Returns:
             Tuple of (rel_y, rel_x) tensors of shape (B, T, 1).
         """
-        B, T, _ = coords.shape
+        _B, _T, _ = coords.shape
 
         if self.reference == "min":
             # Relative to minimum coordinates in each batch
@@ -250,17 +245,10 @@ class ViTEncoder(nn.Module):
         self.dropout = dropout
 
         self.token_embed = TokenEmbedding(token_dim, embed_dim)
-        self.pos_embed = CoordinatePositionalEmbedding(
-            embed_dim, max_rel_coord=max_rel_coord, reference=pos_reference
-        )
+        self.pos_embed = CoordinatePositionalEmbedding(embed_dim, max_rel_coord=max_rel_coord, reference=pos_reference)
         self.dropout_layer = nn.Dropout(dropout)
 
-        self.blocks = nn.ModuleList(
-            [
-                TransformerBlock(embed_dim, num_heads, mlp_ratio, dropout)
-                for _ in range(depth)
-            ]
-        )
+        self.blocks = nn.ModuleList([TransformerBlock(embed_dim, num_heads, mlp_ratio, dropout) for _ in range(depth)])
 
         self.norm = nn.LayerNorm(embed_dim)
 
@@ -302,18 +290,14 @@ class ViTEncoder(nn.Module):
                 if mask.shape[0] == x.shape[1]:
                     mask = mask.unsqueeze(0)  # (1, T)
                 else:
-                    raise ValueError(
-                        f"Mask shape {mask.shape} doesn't match sequence length {x.shape[1]}"
-                    )
+                    raise ValueError(f"Mask shape {mask.shape} doesn't match sequence length {x.shape[1]}")
             elif mask.dim() == 2:
                 # Ensure mask matches (B, T)
                 if mask.shape[0] != x.shape[0] or mask.shape[1] != x.shape[1]:
-                    raise ValueError(
-                        f"Mask shape {mask.shape} doesn't match tokens shape {x.shape[:2]}"
-                    )
+                    raise ValueError(f"Mask shape {mask.shape} doesn't match tokens shape {x.shape[:2]}")
             else:
                 raise ValueError(f"Mask must be 1D or 2D, got shape {mask.shape}")
-            
+
             mask_expanded = mask.unsqueeze(-1)  # (B, T, 1)
             x = x * mask_expanded.float()
 

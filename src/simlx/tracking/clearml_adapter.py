@@ -104,4 +104,6 @@ class ClearMLAdapter(ExperimentTracker):
 
     @property
     def run_id(self) -> str | None:
-        return self._task.id if self._task else self._task_id
+        if self._task is not None:
+            return self._task.id
+        return self._task_id

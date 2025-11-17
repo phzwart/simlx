@@ -132,7 +132,7 @@ class ProjectionHead(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        config: "MatryoshkaUNetConfig",
+        config: MatryoshkaUNetConfig,
     ) -> None:
         super().__init__()
         if config.use_fixed_gaussian_projections:
@@ -159,9 +159,9 @@ class ProjectionHead(nn.Module):
         return self.head(x)
 
 
-def _make_scale_normalizer(config: "MatryoshkaUNetConfig", num_channels: int) -> nn.Module:
+def _make_scale_normalizer(config: MatryoshkaUNetConfig, num_channels: int) -> nn.Module:
     """Factory for scale-dependent global normalizers.
-    
+
     For exposed feature maps, uses BatchNorm → QuantileNorm cascade when
     scale_normalization="quantile".
     """
@@ -181,11 +181,7 @@ def _make_scale_normalizer(config: "MatryoshkaUNetConfig", num_channels: int) ->
             bn_affine=False,
             bn_track_running_stats=True,
             num_quantiles=config.quantile_num_quantiles,
-            percentiles=(
-                list(config.quantile_percentiles)
-                if config.quantile_percentiles is not None
-                else None
-            ),
+            percentiles=(list(config.quantile_percentiles) if config.quantile_percentiles is not None else None),
             target_dist=config.quantile_target_dist,
             momentum=config.quantile_momentum,
             temperature=config.quantile_temperature,
@@ -307,7 +303,7 @@ class MatryoshkaUNetConfig:
         if self.conv_mode != "standard":
             raise ValueError("Only conv_mode='standard' supported in Stage 1")
 
-    def _validate_scale_normalization(self) -> None:
+    def _validate_scale_normalization(self) -> None:  # noqa: C901
         allowed = {None, "batchnorm", "quantile"}
         if self.scale_normalization not in allowed:
             raise ValueError(f"Unsupported scale_normalization: {self.scale_normalization}")
@@ -316,16 +312,17 @@ class MatryoshkaUNetConfig:
         if self.scale_normalization == "quantile":
             if self.quantile_num_quantiles < 2:
                 raise ValueError("quantile_num_quantiles must be at least 2")
-            if self.quantile_percentiles is not None:
-                if len(self.quantile_percentiles) != self.quantile_num_quantiles:
-                    raise ValueError(
-                        f"quantile_percentiles length ({len(self.quantile_percentiles)}) "
-                        f"must match quantile_num_quantiles ({self.quantile_num_quantiles})"
-                    )
+            if (
+                self.quantile_percentiles is not None
+                and len(self.quantile_percentiles) != self.quantile_num_quantiles
+            ):
+                raise ValueError(
+                    f"quantile_percentiles length ({len(self.quantile_percentiles)}) "
+                    f"must match quantile_num_quantiles ({self.quantile_num_quantiles})"
+                )
             if self.quantile_target_dist not in {"gaussian", "uniform"}:
                 raise ValueError(
-                    f"quantile_target_dist must be 'gaussian' or 'uniform', "
-                    f"got {self.quantile_target_dist}"
+                    f"quantile_target_dist must be 'gaussian' or 'uniform', got {self.quantile_target_dist}"
                 )
             if self.quantile_momentum <= 0 or self.quantile_momentum > 1:
                 raise ValueError("quantile_momentum must be between 0 and 1")
@@ -335,13 +332,11 @@ class MatryoshkaUNetConfig:
                 raise ValueError("quantile_eps must be positive")
 
     def _validate_projection_settings(self) -> None:
-        projection_strategies = sum(
-            [
-                self.use_fixed_gaussian_projections,
-                self.use_random_projections,
-                self.projection_head_factory is not None,
-            ]
-        )
+        projection_strategies = sum([
+            self.use_fixed_gaussian_projections,
+            self.use_random_projections,
+            self.projection_head_factory is not None,
+        ])
         if projection_strategies > 1:
             raise ValueError(
                 "Cannot use multiple projection strategies simultaneously. "

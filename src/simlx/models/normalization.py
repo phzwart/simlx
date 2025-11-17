@@ -6,8 +6,6 @@ normalization layer designed to work alongside BatchNorm for distribution refine
 
 from __future__ import annotations
 
-from typing import Optional, List
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -49,7 +47,7 @@ class QuantileNorm2d(nn.Module):
         self,
         num_features: int,
         num_quantiles: int = 5,
-        percentiles: Optional[List[float]] = None,
+        percentiles: list[float] | None = None,
         target_dist: str = "gaussian",
         momentum: float = 0.01,
         temperature: float = 0.05,
@@ -76,18 +74,16 @@ class QuantileNorm2d(nn.Module):
             else:
                 percentiles = list(torch.linspace(2, 98, num_quantiles).tolist())
 
-        assert len(percentiles) == num_quantiles, (
-            f"Number of percentiles ({len(percentiles)}) must match "
-            f"num_quantiles ({num_quantiles})"
-        )
+        if len(percentiles) != num_quantiles:
+            raise ValueError(
+                f"Number of percentiles ({len(percentiles)}) must match num_quantiles ({num_quantiles})"
+            )
 
         self.register_buffer("percentiles", torch.tensor(percentiles, dtype=torch.float32))
 
         # Target distribution quantiles
         self.target_dist = target_dist
-        self.register_buffer(
-            "target_quantiles", self._get_target_quantiles(target_dist, percentiles)
-        )
+        self.register_buffer("target_quantiles", self._get_target_quantiles(target_dist, percentiles))
 
         if self.track_running_stats:
             # Running quantiles: [C, Q]
@@ -121,22 +117,16 @@ class QuantileNorm2d(nn.Module):
     def reset_parameters(self) -> None:
         """Initialize parameters."""
         if self.track_running_stats:
-            init_quantiles = self._get_target_quantiles(
-                "gaussian", self.percentiles.tolist()
-            )
+            init_quantiles = self._get_target_quantiles("gaussian", self.percentiles.tolist())
             self.running_quantiles.fill_(0.0)
-            self.running_quantiles.copy_(
-                init_quantiles.unsqueeze(0).repeat(self.num_features, 1)
-            )
+            self.running_quantiles.copy_(init_quantiles.unsqueeze(0).repeat(self.num_features, 1))
             self.running_variance.fill_(1.0)
             self.num_batches_tracked.zero_()
         if self.affine:
             self.weight.data.fill_(1.0)
             self.bias.data.zero_()
 
-    def _get_target_quantiles(
-        self, dist: str, percentiles: List[float]
-    ) -> torch.Tensor:
+    def _get_target_quantiles(self, dist: str, percentiles: list[float]) -> torch.Tensor:
         """Get quantiles for target distribution."""
         p = torch.tensor(percentiles, dtype=torch.float32) / 100.0
 
@@ -152,9 +142,7 @@ class QuantileNorm2d(nn.Module):
 
         return quantiles
 
-    def _compute_batch_quantiles(
-        self, x: torch.Tensor, channel: int
-    ) -> torch.Tensor:
+    def _compute_batch_quantiles(self, x: torch.Tensor, channel: int) -> torch.Tensor:
         """Compute quantiles for a single channel across batch and spatial dims.
 
         Args:
@@ -166,9 +154,7 @@ class QuantileNorm2d(nn.Module):
         x_flat = x.reshape(-1)  # Flatten batch and spatial
 
         # Use torch.quantile (differentiable as of PyTorch 1.7+)
-        quantiles = torch.quantile(
-            x_flat, self.percentiles / 100.0, interpolation="linear"
-        )
+        quantiles = torch.quantile(x_flat, self.percentiles / 100.0, interpolation="linear")
 
         return quantiles
 
@@ -177,7 +163,7 @@ class QuantileNorm2d(nn.Module):
         if not self.training or not self.track_running_stats:
             return
 
-        B, C, H, W = x.shape
+        _B, C, _H, _W = x.shape
 
         # Exponential moving average momentum
         momentum = self.momentum
@@ -190,9 +176,7 @@ class QuantileNorm2d(nn.Module):
                 batch_var = x_c.var().item()
 
                 # Update running variance
-                self.running_variance[c] = (
-                    (1 - momentum) * self.running_variance[c] + momentum * batch_var
-                )
+                self.running_variance[c] = (1 - momentum) * self.running_variance[c] + momentum * batch_var
 
                 # Skip quantile update for nearly-uniform channels
                 if batch_var < self.eps:
@@ -202,10 +186,7 @@ class QuantileNorm2d(nn.Module):
                 batch_quantiles = self._compute_batch_quantiles(x_c, c)
 
                 # Update running quantiles (EMA)
-                self.running_quantiles[c] = (
-                    (1 - momentum) * self.running_quantiles[c]
-                    + momentum * batch_quantiles
-                )
+                self.running_quantiles[c] = (1 - momentum) * self.running_quantiles[c] + momentum * batch_quantiles
 
             self.num_batches_tracked += 1
 
@@ -243,9 +224,7 @@ class QuantileNorm2d(nn.Module):
         weights = F.softmax(-distances / self.temperature, dim=-1)  # [B*H*W, Q]
 
         # Interpolate percentiles (find empirical percentile rank)
-        percentile_ranks = (weights * self.percentiles.unsqueeze(0)).sum(
-            dim=-1
-        )  # [B*H*W]
+        (weights * self.percentiles.unsqueeze(0)).sum(dim=-1)  # [B*H*W]
 
         # Map percentiles to target distribution via interpolation
         # Linear interpolation through target quantiles
@@ -263,11 +242,9 @@ class QuantileNorm2d(nn.Module):
         Returns:
             Normalized tensor [B, C, H, W]
         """
-        B, C, H, W = x.shape
+        _B, C, _H, _W = x.shape
 
-        assert C == self.num_features, (
-            f"Expected {self.num_features} channels, got {C}"
-        )
+        assert self.num_features == C, f"Expected {self.num_features} channels, got {C}"
 
         # Update running statistics in training mode
         if self.training:
@@ -279,9 +256,7 @@ class QuantileNorm2d(nn.Module):
             variances = self.running_variance  # [C]
         else:
             # Compute batch quantiles on-the-fly (no tracking)
-            quantiles = torch.stack(
-                [self._compute_batch_quantiles(x[:, c], c) for c in range(C)]
-            )  # [C, Q]
+            quantiles = torch.stack([self._compute_batch_quantiles(x[:, c], c) for c in range(C)])  # [C, Q]
             variances = x.var(dim=(0, 2, 3))  # [C]
 
         # Apply quantile transformation per channel
@@ -302,10 +277,7 @@ class QuantileNorm2d(nn.Module):
 
         # Apply affine transformation (like BatchNorm)
         if self.affine:
-            x_normalized = (
-                x_normalized * self.weight.view(1, -1, 1, 1)
-                + self.bias.view(1, -1, 1, 1)
-            )
+            x_normalized = x_normalized * self.weight.view(1, -1, 1, 1) + self.bias.view(1, -1, 1, 1)
 
         return x_normalized
 
@@ -354,4 +326,3 @@ def CascadedNorm2d(
         ),
         QuantileNorm2d(num_features, **kwargs),
     )
-
